@@ -104,6 +104,24 @@
   background: var(--teal-pale);
 }
 
+.record-hotkey-hint {
+  font-size: 12px;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.record-hotkey-hint kbd {
+  background: var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
 .spin {
   animation: spin 1s linear infinite;
 }

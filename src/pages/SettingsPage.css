@@ -109,32 +109,61 @@
   border-color: var(--teal);
 }
 
-.settings-hotkeys {
+.settings-capture-row {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-key-capture {
+  display: flex;
+  align-items: center;
   gap: 8px;
-}
-
-.settings-hotkey {
   border: 1.5px solid var(--border);
-  border-radius: 7px;
-  padding: 7px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
   background: white;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  cursor: pointer;
+  min-width: 160px;
+  transition: border-color 0.15s, background 0.15s;
+  letter-spacing: 0.3px;
+  font-family: ui-monospace, monospace;
+  outline: none;
 }
 
-.settings-hotkey:hover {
+.settings-key-capture:focus,
+.settings-key-capture:hover {
   border-color: var(--teal);
-  color: var(--teal);
 }
 
-.settings-hotkey.active {
+.settings-key-capture.capturing {
   border-color: var(--teal);
-  color: var(--teal);
   background: var(--teal-pale);
+  color: var(--teal);
+  animation: capture-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes capture-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45, 106, 101, 0.3); }
+  50% { box-shadow: 0 0 0 5px rgba(45, 106, 101, 0); }
+}
+
+.settings-capture-clear {
+  font-size: 13px;
+  color: var(--text-light);
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: white;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.settings-capture-clear:hover {
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .settings-about {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Check } from 'lucide-react'
+import { Eye, EyeOff, Check, Keyboard } from 'lucide-react'
 import { useStore } from '../store'
 import './SettingsPage.css'
 
@@ -12,18 +12,47 @@ const LANGUAGES = [
   { code: 'pt', label: 'Portuguese' },
 ]
 
-const HOTKEYS = ['F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12']
+function formatKey(e) {
+  const parts = []
+  if (e.metaKey) parts.push('⌘')
+  if (e.ctrlKey) parts.push('Ctrl')
+  if (e.altKey) parts.push('⌥')
+  if (e.shiftKey) parts.push('⇧')
+  if (!['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) {
+    parts.push(e.key === ' ' ? 'Space' : e.key)
+  }
+  return parts
+}
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useStore()
   const [showKey, setShowKey] = useState(false)
   const [saved, setSaved] = useState(false)
   const [localKey, setLocalKey] = useState(settings.openaiKey)
+  const [capturing, setCapturing] = useState(false)
 
   const save = () => {
     updateSettings({ openaiKey: localKey })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleKeyCapture = (e) => {
+    if (!capturing) return
+    e.preventDefault()
+    e.stopPropagation()
+    if (['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) return
+    const parts = formatKey(e)
+    if (parts.length === 0) return
+    updateSettings({
+      hotkey: parts.join('+'),
+      hotkeyKey: e.key,
+      hotkeyMeta: e.metaKey,
+      hotkeyCtrl: e.ctrlKey,
+      hotkeyAlt: e.altKey,
+      hotkeyShift: e.shiftKey,
+    })
+    setCapturing(false)
   }
 
   return (
@@ -75,18 +104,30 @@ export default function SettingsPage() {
           </div>
 
           <div className="settings-field">
-            <label className="settings-label">Hotkey</label>
-            <p className="settings-hint">Keyboard shortcut to start/stop recording (visual reference only — use the Record button)</p>
-            <div className="settings-hotkeys">
-              {HOTKEYS.map(k => (
+            <label className="settings-label">Push-to-talk Shortcut</label>
+            <p className="settings-hint">
+              Hold this key to record, release to transcribe. Click the field below and press any key or combination (e.g. Fn+F4, ⌘+Space).
+              <br />Note: the Fn key alone is not detectable by browsers — use Fn+F1…F12 instead.
+            </p>
+            <div className="settings-capture-row">
+              <div
+                className={`settings-key-capture ${capturing ? 'capturing' : ''}`}
+                tabIndex={0}
+                onClick={() => setCapturing(true)}
+                onKeyDown={handleKeyCapture}
+                onBlur={() => setCapturing(false)}
+              >
+                <Keyboard size={15} />
+                {capturing ? 'Press a key…' : (settings.hotkey || 'Click to set shortcut')}
+              </div>
+              {settings.hotkey && !capturing && (
                 <button
-                  key={k}
-                  className={`settings-hotkey ${settings.hotkey === k ? 'active' : ''}`}
-                  onClick={() => updateSettings({ hotkey: k })}
+                  className="settings-capture-clear"
+                  onClick={() => updateSettings({ hotkey: '', hotkeyKey: '' })}
                 >
-                  {k}
+                  Clear
                 </button>
-              ))}
+              )}
             </div>
           </div>
         </div>

@@ -80,8 +80,14 @@
 
 .insights-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 300px;
   gap: 16px;
+  align-items: start;
+}
+
+.heatmap-card {
+  overflow-x: auto;
+  min-width: 0;
 }
 
 .app-usage-card, .heatmap-card {

@@ -76,6 +76,11 @@ export default function InsightsPage() {
       </div>
 
       <div className="insights-row">
+        <div className="heatmap-card">
+          <div className="card-section-label">ACTIVITY HEATMAP</div>
+          <HeatmapCalendar dayCounts={dayCounts} getColor={getLevel} />
+        </div>
+
         <div className="app-usage-card">
           <div className="card-section-label">TOTAL APPS USED | {Object.keys(appCounts).length}</div>
           <div className="app-bars">
@@ -98,11 +103,6 @@ export default function InsightsPage() {
               )
             })}
           </div>
-        </div>
-
-        <div className="heatmap-card">
-          <div className="card-section-label">ACTIVITY HEATMAP</div>
-          <HeatmapCalendar dayCounts={dayCounts} getColor={getLevel} />
         </div>
       </div>
     </div>

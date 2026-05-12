@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Mic, Square, Loader } from 'lucide-react'
 import { useStore } from '../store'
 import './RecordBar.css'
@@ -86,6 +86,38 @@ export default function RecordBar() {
     if (liveText) navigator.clipboard.writeText(liveText)
   }
 
+  // Push-to-talk: hold configured hotkey → record, release → transcribe
+  useEffect(() => {
+    if (!settings.hotkeyKey) return
+    const matches = (e) =>
+      e.key === settings.hotkeyKey &&
+      !!e.metaKey === !!settings.hotkeyMeta &&
+      !!e.ctrlKey === !!settings.hotkeyCtrl &&
+      !!e.altKey === !!settings.hotkeyAlt &&
+      !!e.shiftKey === !!settings.hotkeyShift
+
+    const onKeyDown = (e) => {
+      if (e.repeat || !matches(e)) return
+      if (status === 'idle' && micPermission === 'granted') {
+        e.preventDefault()
+        startRecording()
+      }
+    }
+    const onKeyUp = (e) => {
+      if (!matches(e)) return
+      if (status === 'recording') {
+        e.preventDefault()
+        stopRecording()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [status, micPermission, settings])
+
   return (
     <div className="record-bar">
       <div className="record-bar-left">
@@ -111,6 +143,11 @@ export default function RecordBar() {
             <span className="record-dot" />
             <span className="record-label">Recording…</span>
           </div>
+        )}
+        {status === 'idle' && settings.hotkey && micPermission === 'granted' && (
+          <span className="record-hotkey-hint">
+            or hold <kbd>{settings.hotkey}</kbd>
+          </span>
         )}
       </div>
       {liveText && (

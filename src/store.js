@@ -4,6 +4,11 @@ const DEFAULT_SETTINGS = {
   openaiKey: '',
   language: 'fr',
   hotkey: 'F4',
+  hotkeyKey: 'F4',
+  hotkeyMeta: false,
+  hotkeyCtrl: false,
+  hotkeyAlt: false,
+  hotkeyShift: false,
 }
 
 const DEFAULT_DICTIONARY = [
