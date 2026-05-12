@@ -1,0 +1,42 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #F5F3EF;
+  --card-bg: #FFFFFF;
+  --teal: #2D6A65;
+  --teal-light: #4A9490;
+  --teal-pale: #E8F3F2;
+  --text: #1A1A1A;
+  --text-muted: #7A7A7A;
+  --text-light: #AAAAAA;
+  --border: #E8E6E2;
+  --danger: #E05252;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--font);
+}
+
+input, textarea {
+  font-family: var(--font);
+}
