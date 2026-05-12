@@ -4,16 +4,15 @@ import { useStore } from '../store'
 import './FloatingRecorder.css'
 
 export default function FloatingRecorder() {
-  const { settings, micPermission, addHistory } = useStore()
+  const { settings, addHistory, setMicPermission } = useStore()
   const [status, setStatus] = useState('idle') // idle | recording | transcribing
   const [result, setResult] = useState('')
   const [visible, setVisible] = useState(false)
   const mediaRecorderRef = useRef(null)
-  const chunksRef = useRef(null)
-  const lastFocusRef = useRef(null)
+  const chunksRef = useRef([])
+  const startTimeRef = useRef(null)
   const hideTimerRef = useRef(null)
 
-  // Show floating bar whenever not idle
   useEffect(() => {
     if (status !== 'idle') {
       setVisible(true)
@@ -24,7 +23,7 @@ export default function FloatingRecorder() {
       hideTimerRef.current = setTimeout(() => {
         setVisible(false)
         setResult('')
-      }, 4000)
+      }, 5000)
     } else {
       setVisible(false)
     }
@@ -32,22 +31,21 @@ export default function FloatingRecorder() {
   }, [status, result])
 
   const startRecording = async () => {
-    if (micPermission !== 'granted' || status !== 'idle') return
-    // Remember where cursor is before we grab focus
-    const active = document.activeElement
-    if (active && active !== document.body) lastFocusRef.current = active
+    if (status !== 'idle') return
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      setMicPermission('granted')
       const mr = new MediaRecorder(stream, { mimeType: 'audio/webm' })
       chunksRef.current = []
       mr.ondataavailable = e => chunksRef.current.push(e.data)
       mr.onstop = () => transcribe(stream)
       mr.start()
       mediaRecorderRef.current = mr
+      startTimeRef.current = Date.now()
       setStatus('recording')
       setResult('')
-    } catch (err) {
-      console.error('Recording error', err)
+    } catch {
+      setMicPermission('denied')
     }
   }
 
@@ -57,31 +55,22 @@ export default function FloatingRecorder() {
     setStatus('transcribing')
   }
 
-  const insertText = (text) => {
-    const el = lastFocusRef.current
-    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
-      el.focus()
-      const start = el.selectionStart ?? el.value.length
-      const end = el.selectionEnd ?? el.value.length
-      el.value = el.value.slice(0, start) + text + el.value.slice(end)
-      el.selectionStart = el.selectionEnd = start + text.length
-      el.dispatchEvent(new Event('input', { bubbles: true }))
-    } else if (el?.isContentEditable) {
-      el.focus()
-      document.execCommand('insertText', false, text)
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(text)
-    }
-  }
+  // Stop recording when window loses focus → user switched to another app
+  useEffect(() => {
+    const onBlur = () => { if (status === 'recording') stopRecording() }
+    window.addEventListener('blur', onBlur)
+    return () => window.removeEventListener('blur', onBlur)
+  }, [status])
 
   const transcribe = async (stream) => {
     stream.getTracks().forEach(t => t.stop())
+    const duration = startTimeRef.current ? (Date.now() - startTimeRef.current) / 1000 : 0
     const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
 
     if (!settings.openaiKey) {
-      const demo = '(Demo) Ajoutez votre clé OpenAI dans Settings pour activer la transcription.'
-      setResult(demo)
+      const demo = 'Ajoutez votre clé OpenAI dans Settings pour activer la transcription réelle.'
+      navigator.clipboard.writeText(demo).catch(() => {})
+      setResult('⚠ Clé API manquante — Settings')
       setStatus('idle')
       return
     }
@@ -99,14 +88,17 @@ export default function FloatingRecorder() {
       })
       const data = await res.json()
       const text = data.text?.trim() || ''
+
       if (text) {
-        insertText(text)
+        // Auto-copy to clipboard so user can ⌘V anywhere
+        navigator.clipboard.writeText(text).catch(() => {})
         setResult(text)
         addHistory({
           id: Date.now(),
           text,
           date: new Date().toISOString(),
-          words: text.split(' ').length,
+          words: text.split(/\s+/).filter(Boolean).length,
+          duration,
           app: 'Browser',
         })
       }
@@ -136,25 +128,22 @@ export default function FloatingRecorder() {
 
     const onKeyDown = (e) => {
       if (e.repeat || !matches(e)) return
-      if (status === 'idle' && micPermission === 'granted') {
-        e.preventDefault()
-        startRecording()
-      }
+      e.preventDefault()
+      startRecording()
     }
     const onKeyUp = (e) => {
       if (!matches(e)) return
-      if (status === 'recording') {
-        e.preventDefault()
-        stopRecording()
-      }
+      e.preventDefault()
+      stopRecording()
     }
+
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
     }
-  }, [status, micPermission, settings])
+  }, [status, settings])
 
   if (!visible && status === 'idle') return null
 
@@ -179,6 +168,7 @@ export default function FloatingRecorder() {
         <>
           <span className="fr-check">✓</span>
           <span className="fr-result">{result}</span>
+          <span className="fr-paste-hint">⌘V pour coller</span>
           <button className="fr-dismiss" onClick={() => { setResult(''); setVisible(false) }}>✕</button>
         </>
       )}

@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react'
 const DEFAULT_SETTINGS = {
   openaiKey: '',
   language: 'fr',
-  hotkey: 'F4',
-  hotkeyKey: 'F4',
+  hotkey: '',
+  hotkeyKey: '',
   hotkeyMeta: false,
   hotkeyCtrl: false,
   hotkeyAlt: false,
@@ -13,11 +13,9 @@ const DEFAULT_SETTINGS = {
 
 const DEFAULT_DICTIONARY = [
   { id: 1, word: 'Supabase', ai: true },
-  { id: 2, word: 'Theo', ai: false },
-  { id: 3, word: 'ChatGPT', ai: true },
-  { id: 4, word: 'Wispr Flow', ai: false },
-  { id: 5, word: 'labranche.theo@gmail.com', ai: false },
-  { id: 6, word: 'Théo Labranche', ai: false },
+  { id: 2, word: 'Wispr Flow', ai: false },
+  { id: 3, word: 'labranche.theo@gmail.com', ai: false },
+  { id: 4, word: 'Théo Labranche', ai: false },
 ]
 
 function load(key, fallback) {
@@ -35,14 +33,12 @@ function save(key, value) {
   } catch {}
 }
 
-// Simple global store using module-level state + listeners
+// v2 keys to avoid loading old sample data
 let state = {
   micPermission: 'unknown',
-  settings: load('vf_settings', DEFAULT_SETTINGS),
+  settings: load('vf_settings_v2', DEFAULT_SETTINGS),
   dictionary: load('vf_dictionary', DEFAULT_DICTIONARY),
-  history: load('vf_history', generateSampleHistory()),
-  recording: false,
-  transcript: '',
+  history: load('vf_history_v2', []),
 }
 
 let listeners = []
@@ -54,31 +50,6 @@ function notify() {
 function setState(updates) {
   state = { ...state, ...updates }
   notify()
-}
-
-function generateSampleHistory() {
-  const items = []
-  const texts = [
-    'Envoie un email à l\'équipe pour la réunion de demain matin à 9h.',
-    'Rappelle-moi d\'appeler le client Dupont cet après-midi.',
-    'Rédige une note sur le projet VoiceFlow et les prochaines étapes.',
-    'Cherche les meilleures pratiques pour l\'API OpenAI Whisper.',
-    'Prépare un résumé de la réunion d\'hier avec les points clés.',
-    'Ajoute une entrée dans le dictionnaire pour Théo Labranche.',
-    'Planifie une démonstration de l\'application la semaine prochaine.',
-  ]
-  const now = Date.now()
-  for (let i = 0; i < 20; i++) {
-    const date = new Date(now - i * 3600000 * Math.random() * 48)
-    items.push({
-      id: i + 1,
-      text: texts[i % texts.length],
-      date: date.toISOString(),
-      words: Math.floor(Math.random() * 30) + 5,
-      app: ['Chrome', 'VS Code', 'Notion', 'Slack', 'Mail'][i % 5],
-    })
-  }
-  return items
 }
 
 export function useStore() {
@@ -93,16 +64,14 @@ export function useStore() {
   return {
     ...snap,
     setMicPermission: (v) => setState({ micPermission: v }),
-    setRecording: (v) => setState({ recording: v }),
-    setTranscript: (v) => setState({ transcript: v }),
     addHistory: (item) => {
       const updated = [item, ...state.history]
-      save('vf_history', updated)
+      save('vf_history_v2', updated)
       setState({ history: updated })
     },
     updateSettings: (updates) => {
       const updated = { ...state.settings, ...updates }
-      save('vf_settings', updated)
+      save('vf_settings_v2', updated)
       setState({ settings: updated })
     },
     addWord: (word) => {
