@@ -1,0 +1,113 @@
+.floating-recorder {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(20, 20, 20, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 100px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  font-size: 13px;
+  font-weight: 500;
+  max-width: 480px;
+  pointer-events: none;
+}
+
+.floating-recorder.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+/* Recording state */
+.floating-recorder.recording {
+  background: rgba(200, 40, 40, 0.9);
+}
+
+.fr-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+  flex-shrink: 0;
+  animation: fr-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes fr-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+.fr-label {
+  white-space: nowrap;
+  flex: 1;
+}
+
+.fr-stop {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.fr-stop:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+/* Transcribing state */
+.floating-recorder.transcribing {
+  background: rgba(45, 106, 101, 0.92);
+}
+
+.fr-spin {
+  animation: fr-rotate 1s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes fr-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Result state */
+.fr-check {
+  color: #4ade80;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.fr-result {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 340px;
+  opacity: 0.9;
+}
+
+.fr-dismiss {
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.fr-dismiss:hover {
+  color: white;
+}

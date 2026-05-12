@@ -12,15 +12,18 @@ const LANGUAGES = [
   { code: 'pt', label: 'Portuguese' },
 ]
 
+const MODIFIER_LABELS = { Control: 'Ctrl', Alt: '⌥ Option', Shift: '⇧ Shift', Meta: '⌘ Cmd' }
+const MODIFIER_KEYS = Object.keys(MODIFIER_LABELS)
+
 function formatKey(e) {
+  // Allow modifier key alone as hotkey
+  if (MODIFIER_KEYS.includes(e.key)) return [MODIFIER_LABELS[e.key]]
   const parts = []
   if (e.metaKey) parts.push('⌘')
   if (e.ctrlKey) parts.push('Ctrl')
   if (e.altKey) parts.push('⌥')
   if (e.shiftKey) parts.push('⇧')
-  if (!['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) {
-    parts.push(e.key === ' ' ? 'Space' : e.key)
-  }
+  parts.push(e.key === ' ' ? 'Space' : e.key)
   return parts
 }
 
@@ -41,16 +44,17 @@ export default function SettingsPage() {
     if (!capturing) return
     e.preventDefault()
     e.stopPropagation()
-    if (['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) return
+    const isModOnly = MODIFIER_KEYS.includes(e.key)
     const parts = formatKey(e)
     if (parts.length === 0) return
     updateSettings({
       hotkey: parts.join('+'),
       hotkeyKey: e.key,
-      hotkeyMeta: e.metaKey,
-      hotkeyCtrl: e.ctrlKey,
-      hotkeyAlt: e.altKey,
-      hotkeyShift: e.shiftKey,
+      // Don't store modifier flags when the hotkey IS a modifier key
+      hotkeyMeta: !isModOnly && e.metaKey,
+      hotkeyCtrl: !isModOnly && e.ctrlKey,
+      hotkeyAlt: !isModOnly && e.altKey,
+      hotkeyShift: !isModOnly && e.shiftKey,
     })
     setCapturing(false)
   }
@@ -106,8 +110,8 @@ export default function SettingsPage() {
           <div className="settings-field">
             <label className="settings-label">Push-to-talk Shortcut</label>
             <p className="settings-hint">
-              Hold this key to record, release to transcribe. Click the field below and press any key or combination (e.g. Fn+F4, ⌘+Space).
-              <br />Note: the Fn key alone is not detectable by browsers — use Fn+F1…F12 instead.
+              Maintiens cette touche pour enregistrer, relâche pour transcrire. Clique le champ et appuie sur une touche — y compris Ctrl, ⌥ Option, ⇧ Shift seuls.
+              <br />⚠ La touche Fn seule est gérée par l'OS et invisible aux navigateurs. Utilise plutôt ⌥ Option ou une touche F1–F12.
             </p>
             <div className="settings-capture-row">
               <div

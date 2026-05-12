@@ -6,6 +6,7 @@ import DictionaryPage from './pages/DictionaryPage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
 import MicPermissionModal from './components/MicPermissionModal'
+import FloatingRecorder from './components/FloatingRecorder'
 import { useStore } from './store'
 import './App.css'
 
@@ -35,6 +36,7 @@ export default function App() {
       {micPermission === 'unknown' && (
         <MicPermissionModal onGrant={handleGrantMic} />
       )}
+      <FloatingRecorder />
       <Sidebar page={page} onNavigate={setPage} />
       <div className="app-main">
         <RecordBar />
